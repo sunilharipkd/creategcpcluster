@@ -21,18 +21,42 @@ Master: Ubuntu 20.04 (must)
         Disk 50GB 
         Machine min 2CPU 4GB
 
-Slave: Ubuntu 20.04 (must)
+Worker: Ubuntu 20.04 (must)
         Disk 50GB 
         Machine min 2CPU 4GB
 
 Once the VM instances are created, use the command `gcloud compute ssh <instance name>` to log into the machines. 
 This depends on how you need to log into the virtual machines, based on that your networking and other parameters can be adjusted
 
+# Creation of cluster
 Once logged in to the master :
 
 ```
 sudo -i
-bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/cluster-setup/latest/install_master.sh)
+bash <(curl -s https://raw.githubusercontent.com/sunilharipkd/creategkecluster/main/install_master.sh)
+```
+
+log in to the worker :
+
+```
+sudo -i
+bash <(curl -s https://raw.githubusercontent.com/sunilharipkd/creategkecluster/main/install_worker.sh)
+```
+
+IMPORTANT: Once both the commands are executed, then run the printed kubeadm-join-command from the master (last line of the output) on the worker.
+This will make the worker node join the kubernetes master and form the cluster. 
+
+Validation:
+
+1. Logout from the master
+2. Log in back to the master and wait for some time to validate the cluster 
+`
+kubectl get nodes
+`
+
+#Open the ports 30000-40000 to access the cluster. 
+Run this in the local terminal: 
+`gcloud compute firewall-rules create nodeports --allow tcp:30000-40000`
 
 
 
