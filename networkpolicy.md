@@ -127,3 +127,42 @@ spec:
         - protocol: TCP
           port: 80
 ```
+
+# If you want to restrict a traffic within namespace, it is recommended to have default deny for ingress and egress (like step 4) so that only the requested traffic can be allowed using the network policy. 
+
+6. Sample code that shows traffic allowed between a pod in default ns and a pod in another namespace
+    This code allows: 
+    - traffic from pods with labels "run: frontend"
+    - traffic to pods with labels "run: database" within a namespace labelled "tier: database" 
+    
+```
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-ingress
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      run: backend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              run: frontend
+      ports:
+        - protocol: TCP
+          port: 80
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              tier: database
+          podSelector:
+            matchLabels:
+              run: database
+
+```
