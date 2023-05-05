@@ -10,8 +10,8 @@ spec:
   podSelector: {}
   policyTypes:
     - Egress
-  ingress:
-    - from:
+  egress:
+    - to:
         - ipBlock:
             cidr: 0.0.0.0/0
             except:
