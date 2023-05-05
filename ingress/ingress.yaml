@@ -1,0 +1,36 @@
+#This file creates an ingress object
+#  - host name is ingsec.com
+#  - two services are mapped to this ingress (service1, service2)
+#  - ports 80
+#  - the services are available under the routes /service1 , /service2
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-svc
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  tls:
+  - hosts:
+      - ingsec.com
+    secretName: ing-sec
+  ingressClassName: nginx
+  rules:
+  - host: ingsec.com
+    http:
+      paths:
+      - path: /service1
+        pathType: Prefix
+        backend:
+          service:
+            name: service1
+            port:
+              number: 80
+      - path: /service2
+        pathType: Prefix
+        backend:
+          service:
+            name: service2
+            port:
+              number: 80
