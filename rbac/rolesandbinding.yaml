@@ -1,0 +1,96 @@
+# Scenario ##
+# Create namespaces uk and india
+# Create user Dave who can get secrets in uk namespace
+# Create user Ram who can perform list,get,delete secrets in uk and india namespace
+##############################################################################################
+# Role 
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: uk
+  name: secret-uk
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["secrets"]
+  verbs: ["get", "list"]
+
+# ClusterRole
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: secret-ukindia
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["secrets"]
+  verbs: ["get", "create", "delete", "list"]
+
+
+# Rolebinding.yaml
+
+root@cks-master:~# cat rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: bind-uk
+  namespace: uk
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: secret-ukindia
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: ram
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: bind-india
+  namespace: india
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: secret-ukindia
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: ram
+
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: bind-daveuk
+  namespace: uk
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: secret-uk
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: dave
+
+###########################################################################################
+# Validation:
+
+# root@cks-master:~# kubectl auth can-i get secret -n uk --as ram
+# yes
+# root@cks-master:~# kubectl auth can-i get secret -n india --as ram
+# yes
+# root@cks-master:~# kubectl auth can-i delete secret -n india --as ram
+# yes
+# root@cks-master:~# kubectl auth can-i create secret -n india --as ram
+# yes
+root@cks-master:~# kubectl auth can-i get secret -n uk --as dave
+yes
+
+
+
+
