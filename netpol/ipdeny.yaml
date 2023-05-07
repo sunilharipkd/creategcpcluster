@@ -1,0 +1,18 @@
+# metadata is metadata.google.internal which is having IP of 169.254.169.254. 
+# This helps you to restrict the traffic from pods to the metadata site
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: metadatadeny
+  namespace: default
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 169.254.169.254/32
