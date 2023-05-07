@@ -53,7 +53,68 @@ ram    107s   kubernetes.io/kube-apiserver-client   kubernetes-admin   24h      
 
 `echo <certificate> | base64 -d `
 
-Enable the 
+Create certificate file using the vim editor. 
 
 **3. Using the certificate and key to connect to the K8s API**
 
+1. Set credentials 
+
+```
+ k config set-credentials ram --client-key=ram.key --client-certificate=ram.crt
+ 
+ ```
+ 
+ Validate kubeconfig view 
+ 
+ ```
+ k config view 
+ ```
+ 
+ 
+ ![image](https://user-images.githubusercontent.com/111420932/236675301-732098d5-a798-4e8d-8b0f-99f275e18c5a.png)
+
+Here the certificate and keys are referred to as files, if we want them to be added to the kubeconfig file and mask them, then use the --embed-certs option.
+
+```
+k config set-credentials ram --client-key=ram.key --client-certificate=ram.crt --embed-certs
+```
+
+Output would look like:
+
+![image](https://user-images.githubusercontent.com/111420932/236675440-f4fa35f6-8e06-4de5-99d9-a27a712b82a0.png)
+
+Set a new context to the user .
+```
+root@cks-master:~/csr# k config set-context ram --user=ram --cluster=kubernetes
+Context "ram" created.
+
+
+root@cks-master:~/csr# k config get-contexts
+CURRENT   NAME                          CLUSTER      AUTHINFO           NAMESPACE
+*         kubernetes-admin@kubernetes   kubernetes   kubernetes-admin
+          ram                           kubernetes   ram
+```
+Use the context ram to check the privilege.
+
+```
+root@cks-master:~/csr# k config use-context ram
+Switched to context "ram".
+root@cks-master:~/csr# k get ns
+Error from server (Forbidden): namespaces is forbidden: User "ram" cannot list resource "namespaces" in API group "" at the cluster scope
+root@cks-master:~/csr# k get pods
+Error from server (Forbidden): pods is forbidden: User "ram" cannot list resource "pods" in API group "" in the namespace "default"
+root@cks-master:~/csr# k get secrets
+Error from server (Forbidden): secrets is forbidden: User "ram" cannot list resource "secrets" in API group "" in the namespace "default"
+root@cks-master:~/csr# k get secrets -n india
+No resources found in india namespace.
+root@cks-master:~/csr#
+```
+
+
+## TAKEAWAY: Created the below resources.
+1. Created users ram,dave 
+2. Created roles,clusterroles,rolebinding to make the least privilege applied.
+3. Created a key for ram, created a CSR for ram and send it to API, signed CSR, created a crt.
+4. Using the crt and the key set the credentials for the kubeconfig. 
+5. Set-the context for the user ram and used that context.
+6. Lastly, tried to access resources in the cluster within the context to validate the RBAC.
